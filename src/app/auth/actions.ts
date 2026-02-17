@@ -12,15 +12,8 @@ export async function registerUser(formData: FormData) {
         return { error: 'Nome e telefone são obrigatórios.' };
     }
 
-    // Sanitize phone for Meta: digits only.
-    // Example input: +55 19 99540-9950 -> 5519995409950
+    // Sanitize phone: digits only.
     const sanitizedPhone = phone.replace(/\D/g, '');
-    // Ensure 55 for Brazil if missing, logic can be smarter but keeping it simple as requested:
-    // User didn't ask for smart 55 addition here, but typically inputs have it or not.
-    // The previous code added +55. Let's ensure we have country code.
-    // Assuming mostly BR users, if length is 10 or 11, prepend 55?
-    // Let's rely on sanitizedPhone. If input was "+55..." it's "55...".
-
     // Construct email to satisfy Supabase's email-based magic link requirements
     const email = `${sanitizedPhone}@whatsapp.divamarket.com`;
 
@@ -38,7 +31,7 @@ export async function registerUser(formData: FormData) {
 
         if (createError) {
             if (createError.message.includes('already registered')) {
-                // Proceed to login existing user
+                // Proceed to generate link for existing user
             } else {
                 console.error('Error creating user:', createError);
                 return { error: 'Erro ao criar cadastro: ' + createError.message };
@@ -61,30 +54,41 @@ export async function registerUser(formData: FormData) {
 
         const magicLink = linkData.properties.action_link;
 
-        // 3. Send via Meta WhatsApp Cloud API
-        const metaUrl = `https://graph.facebook.com/v22.0/${process.env.META_PHONE_ID}/messages`;
+        // 3. Trigger n8n Webhook
+        // Payload: { email, phone, fullName, role, magicLink }
+        const webhookUrl = process.env.N8N_WEBHOOK_URL;
 
-        const response = await fetch(metaUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.META_WHATSAPP_TOKEN}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                messaging_product: "whatsapp",
-                recipient_type: "individual",
-                to: sanitizedPhone,
-                type: "text",
-                text: {
-                    body: `Olá ${name}! 🌸\n\nBem-vinda ao Diva Market. Toque no link abaixo para entrar:\n\n${magicLink}`
-                }
-            })
-        });
+        if (!webhookUrl) {
+            console.error('N8N_WEBHOOK_URL is not defined');
+            return { error: 'Erro de configuração do servidor.' };
+        }
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Meta API Error:', JSON.stringify(errorData, null, 2));
-            return { error: 'Erro ao enviar mensagem pelo WhatsApp. Verifique o número.' };
+        try {
+            // We await to ensure we don't redirect before sending, 
+            // but we might not want to block too long if n8n is slow.
+            // Vercel limits execution time.
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    phone: sanitizedPhone, // sending raw digits or sanitized
+                    fullName: name,
+                    role,
+                    magicLink
+                })
+            });
+
+            if (!response.ok) {
+                console.error('n8n Webhook failed:', response.statusText);
+                // We might still want to redirect even if webhook fails? 
+                // Or warn user? "Link generated but sending failed".
+                // Detailed error for now.
+                return { error: 'Erro ao enviar dados para automação.' };
+            }
+        } catch (webhookError) {
+            console.error('Error calling n8n webhook:', webhookError);
+            return { error: 'Erro ao conectar com automação.' };
         }
 
     } catch (err: any) {
