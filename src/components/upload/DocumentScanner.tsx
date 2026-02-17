@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Camera, X, Check, AlertCircle, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 // import { httpsCallable } from 'firebase/functions'; // REMOVED
 // import { functions } from '@/lib/firebase'; // REMOVED
 
@@ -169,15 +170,17 @@ export default function DocumentScanner({
           ) : (
             <div className="space-y-4">
               {/* Image Preview */}
-              <div className="relative">
-                <img
+              <div className="relative w-full h-64">
+                <Image
                   src={selectedImage}
                   alt="Document preview"
-                  className="w-full h-64 object-cover rounded-xl"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  className="rounded-xl"
                 />
                 <button
                   onClick={resetScanner}
-                  className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                  className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors z-10"
                 >
                   <X size={16} className="text-gray-600" />
                 </button>

@@ -12,17 +12,7 @@ interface Message {
   timestamp: Date;
 }
 
-interface ChatResponse {
-  text: string;
-  action?: string;
-  role?: string;
-}
-
-export default function ChatInterface({
-  onDocumentRequired,
-}: {
-  onDocumentRequired: () => void;
-}) {
+export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -104,8 +94,8 @@ export default function ChatInterface({
           >
             <div
               className={`max-w-[80%] px-4 py-3 rounded-2xl ${message.role === 'user'
-                  ? 'bg-primary-700 text-white'
-                  : 'bg-gray-100 text-gray-900'
+                ? 'bg-primary-700 text-white'
+                : 'bg-gray-100 text-gray-900'
                 }`}
             >
               <p className="text-sm leading-relaxed">{message.content}</p>

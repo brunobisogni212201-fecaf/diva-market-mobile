@@ -40,6 +40,7 @@ export default function MediaCapture({
         try {
             const result = await uploadMedia(file, bucket, pathPrefix);
             onUploadComplete(result.url);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error('Upload error:', err);
             setError(err.message || 'Falha no envio da imagem.');
