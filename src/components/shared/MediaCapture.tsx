@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Camera, Image as ImageIcon, Loader2, UploadCloud, X } from 'lucide-react';
+import { Camera, Loader2, UploadCloud, X } from 'lucide-react';
 import { uploadMedia } from '@/lib/supabase/storage';
 import Image from 'next/image';
 

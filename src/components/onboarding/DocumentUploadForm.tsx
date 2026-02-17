@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import MediaCapture from '@/components/shared/MediaCapture';
-import { createClient } from '@/lib/supabase/client';
 
 export default function DocumentUploadForm() {
     const [documents, setDocuments] = useState({

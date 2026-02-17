@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
 // Server Action to create session - Legacy/Wrapper for Supabase
-export async function createSession(_idToken: string) {
+export async function createSession() {
   // Supabase handles session creation on login (signInWithPassword etc)
   // This function might be redundant if the client follows Supabase auth flow
   // For migration compatibility, we might just redirect.

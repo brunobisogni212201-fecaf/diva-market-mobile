@@ -125,7 +125,7 @@ export default function SystemImage({
 }
 
 // Utility function to preload system images (MOCKED)
-export const preloadSystemImages = async (paths: string[]): Promise<void> => {
+export const preloadSystemImages = async (): Promise<void> => {
   // No-op for now
   return Promise.resolve();
 };
