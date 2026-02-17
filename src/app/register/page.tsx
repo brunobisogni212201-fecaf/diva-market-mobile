@@ -3,21 +3,19 @@
 import { useState } from 'react';
 import { User, ArrowRight, Phone } from 'lucide-react';
 import Link from 'next/link';
-import { registerWithWhatsApp } from '@/app/actions/whatsapp';
+import { registerUser } from '@/app/auth/actions';
 import ConsentSection from '@/components/auth/ConsentSection';
 import { ROLES } from '@/lib/auth/rbac';
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    setSuccessMessage('');
 
     if (!agreedToTerms) {
       setError('Você deve aceitar os Termos de Uso e Política de Privacidade para continuar.');
@@ -29,38 +27,14 @@ export default function RegisterPage() {
     formData.append('agreedToTerms', 'true');
     formData.append('role', ROLES.USUARIA);
 
-    const result = await registerWithWhatsApp(formData);
+    const result = await registerUser(formData);
 
     if (result?.error) {
       setError(result.error);
       setIsLoading(false);
-    } else if (result?.success) {
-      setSuccessMessage(result.message || 'Link enviado!');
-      setIsLoading(false);
     }
+    // If success, it redirects automatically
   };
-
-  if (successMessage) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white flex items-center justify-center p-6">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
-          <div className="w-20 h-20 bg-green-100 rounded-full mx-auto flex items-center justify-center">
-            <Phone className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">Verifique seu WhatsApp!</h2>
-          <p className="text-gray-600">
-            {successMessage}
-          </p>
-          <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl">
-            <p>Não recebeu? Verifique se o número está correto ou tente novamente em alguns instantes.</p>
-          </div>
-          <Link href="/login" className="block text-[#880E4F] font-semibold hover:underline mt-4">
-            Voltar para Login
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white">
