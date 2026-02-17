@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { User, ArrowRight, Phone } from 'lucide-react';
 import Link from 'next/link';
-import { registerWithWhatsApp } from '../auth/actions';
+import { registerWithWhatsApp } from '@/app/auth/actions';
 import ConsentSection from '@/components/auth/ConsentSection';
 import { ROLES } from '@/lib/auth/rbac';
 
