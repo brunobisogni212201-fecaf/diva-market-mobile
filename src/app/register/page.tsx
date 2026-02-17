@@ -1,22 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { User, ArrowRight, Phone } from 'lucide-react';
 import Link from 'next/link';
-import { signup } from './actions';
+import { registerWithWhatsApp } from '../auth/actions';
 import ConsentSection from '@/components/auth/ConsentSection';
 import { ROLES } from '@/lib/auth/rbac';
 
 export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccessMessage('');
 
     if (!agreedToTerms) {
       setError('Você deve aceitar os Termos de Uso e Política de Privacidade para continuar.');
@@ -25,15 +26,41 @@ export default function RegisterPage() {
     }
 
     const formData = new FormData(e.currentTarget);
-    formData.append('agreedToTerms', 'true'); // Explicitly append
-    const result = await signup(formData); // Note: Calling directly, might need fix in actions.ts signature if mismatches
+    formData.append('agreedToTerms', 'true');
+    formData.append('role', ROLES.USUARIA);
 
-    if (result?.message) {
-      setError(result.message);
+    const result = await registerWithWhatsApp(formData);
+
+    if (result?.error) {
+      setError(result.error);
+      setIsLoading(false);
+    } else if (result?.success) {
+      setSuccessMessage(result.message || 'Link enviado!');
       setIsLoading(false);
     }
-    // Se sucesso, o redirect acontece no server action
   };
+
+  if (successMessage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
+          <div className="w-20 h-20 bg-green-100 rounded-full mx-auto flex items-center justify-center">
+            <Phone className="w-10 h-10 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Verifique seu WhatsApp!</h2>
+          <p className="text-gray-600">
+            {successMessage}
+          </p>
+          <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl">
+            <p>Não recebeu? Verifique se o número está correto ou tente novamente em alguns instantes.</p>
+          </div>
+          <Link href="/login" className="block text-[#880E4F] font-semibold hover:underline mt-4">
+            Voltar para Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white">
@@ -53,7 +80,7 @@ export default function RegisterPage() {
             Crie sua conta ✨
           </h1>
           <p className="text-slate-600 text-sm leading-relaxed">
-            Junte-se à Diva Market e comece a explorar.
+            Informe seu celular para receber o acesso via WhatsApp.
           </p>
         </header>
 
@@ -81,50 +108,26 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Email Input */}
+          {/* Phone Input */}
           <div className="relative">
             <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400">
-              <Mail size={20} />
+              <Phone size={20} />
             </div>
             <input
-              name="email"
-              type="email"
-              placeholder="seu@email.com"
+              name="phone"
+              type="tel"
+              placeholder="WhatsApp (ex: +5511999999999)"
               className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#880E4F] focus:ring-2 focus:ring-pink-100 transition-all duration-200 text-sm"
               required
               disabled={isLoading}
+              pattern="\+?[0-9]*"
+              inputMode="tel"
             />
           </div>
-
-          {/* Password Input */}
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400">
-              <Lock size={20} />
-            </div>
-            <input
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Crie uma senha"
-              className="w-full pl-12 pr-14 py-4 bg-white border border-gray-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#880E4F] focus:ring-2 focus:ring-pink-100 transition-all duration-200 text-sm"
-              required
-              minLength={6}
-              disabled={isLoading}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-              disabled={isLoading}
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-
-
 
           {/* Consent Section */}
           <ConsentSection
-            role={ROLES.USUARIA} // Defaulting to Usuaria for generic registration
+            role={ROLES.USUARIA}
             checked={agreedToTerms}
             onChange={setAgreedToTerms}
             className="py-2"
@@ -134,13 +137,16 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-[#880E4F] hover:bg-pink-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-pink-200"
+            className="w-full bg-[#25D366] hover:bg-[#128C7E] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-2xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-green-200"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Enviando...</span>
+              </>
             ) : (
               <>
-                <span>Criar conta</span>
+                <span>Receber Link no WhatsApp</span>
                 <ArrowRight size={18} />
               </>
             )}
