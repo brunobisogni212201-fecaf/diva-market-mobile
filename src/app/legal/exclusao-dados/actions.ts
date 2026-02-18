@@ -5,6 +5,9 @@ import { deletionRequests } from '@/lib/db/schema'
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { z } from 'zod'
+import { sendEmail } from '@/lib/mail'
+import { adminDeletionRequestTemplate } from '@/lib/emails/deletion-request-admin'
+import { userDeletionRequestTemplate } from '@/lib/emails/deletion-request-user'
 
 const deletionSchema = z.object({
     fullName: z.string().min(2, 'Nome muito curto'),
@@ -49,11 +52,26 @@ export async function requestDataDeletion(prevState: any, formData: FormData) {
         })
 
         // TODO: Send notification to admins (Discord/Email)
+        const protocol = crypto.randomUUID()
+
+        // 1. Notify Admin
+        await sendEmail({
+            to: 'meucnpj@contabilizei.com.br',
+            subject: `[LGPD] Nova Solicitação de Exclusão - Protocolo ${protocol}`,
+            html: adminDeletionRequestTemplate(protocol, validatedFields.data.fullName, email, cpf || null, reason || 'Not specified', new Date().toLocaleString('pt-BR'))
+        })
+
+        // 2. Notify User
+        await sendEmail({
+            to: email,
+            subject: 'Confirmação de Solicitação de Exclusão de Dados',
+            html: userDeletionRequestTemplate(protocol, validatedFields.data.fullName)
+        })
 
         return {
             success: true,
-            protocol: crypto.randomUUID(), // Return a protocol for the user to save
-            message: 'Solicitação recebida com sucesso.'
+            protocol,
+            message: 'Solicitação recebida com sucesso. Verifique seu e-mail.'
         }
 
     } catch (error) {
