@@ -15,6 +15,8 @@ export async function registerUser(formData: FormData) {
 
     const supabase = createClient();
 
+    console.log("1. Iniciando tentativa de cadastro para:", email);
+
     try {
         const { data, error } = await supabase.auth.signUp({
             email,
@@ -28,7 +30,11 @@ export async function registerUser(formData: FormData) {
         });
 
         if (error) {
-            console.error('Signup error:', error);
+            console.error("❌ ERRO CRÍTICO NO SUPABASE AUTH:");
+            console.error("Mensagem:", error.message);
+            console.error("Status:", error.status);
+            console.error("Nome do Erro:", error.name);
+
             if (error.code === 'user_already_exists' || error.message.includes('already registered')) {
                 return {
                     error: "Este e-mail já está cadastrado. Tente fazer login.",
@@ -38,17 +44,21 @@ export async function registerUser(formData: FormData) {
             return { error: error.message };
         }
 
+        console.log("✅ Usuário criado no Auth com ID:", data.user?.id);
+
         // If signup is successful
         if (data.user) {
             // Check if email confirmation is required (session might be null if so)
             if (!data.session) {
+                console.log("ℹ️ Sessão não criada (confirmação de email necessária).");
                 return { success: true, message: 'Cadastro realizado! Verifique seu e-mail para confirmar.' };
             }
+            console.log("✅ Sessão criada com sucesso via auto-confirm.");
             // If session exists (auto-confirm enabled), redirect to dashboard
         }
 
     } catch (err) {
-        console.error('Unexpected error:', err);
+        console.error('❌ Unexpected error:', err);
         return { error: 'Ocorreu um erro inesperado.' };
     }
 
