@@ -30,8 +30,13 @@ export async function registerUser(formData: FormData) {
         let userId = user?.user?.id;
 
         if (createError) {
-            if (createError.message.includes('already registered')) {
-                // Proceed to generate link for existing user
+            // Check for both message content and status code if available
+            // 422 Unprocessable Entity often means validation error or exists
+            if (createError.message?.includes('already been registered') || createError.status === 422) {
+                return {
+                    error: "Este e-mail/telefone já possui cadastro. Tente fazer login.",
+                    field: "email"
+                };
             } else {
                 console.error('Error creating user:', createError);
                 return { error: 'Erro ao criar cadastro: ' + createError.message };
@@ -54,41 +59,49 @@ export async function registerUser(formData: FormData) {
 
         const magicLink = linkData.properties.action_link;
 
-        // 3. Trigger n8n Webhook
-        // Payload: { email, phone, fullName, role, magicLink }
-        const webhookUrl = process.env.N8N_WEBHOOK_URL;
+        // 3. Send WhatsApp Message via Meta API
+        const metaToken = process.env.META_WHATSAPP_TOKEN;
+        const phoneId = process.env.META_PHONE_ID;
 
-        if (!webhookUrl) {
-            console.error('N8N_WEBHOOK_URL is not defined');
-            return { error: 'Erro de configuração do servidor.' };
+        if (!metaToken || !phoneId) {
+            console.error('Meta API Configuration missing (TOKEN or PHONE_ID).');
+            return { error: 'Erro de configuração do servidor (Meta API).' };
         }
 
         try {
-            // We await to ensure we don't redirect before sending, 
-            // but we might not want to block too long if n8n is slow.
-            // Vercel limits execution time.
-            const response = await fetch(webhookUrl, {
+            const response = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Authorization': `Bearer ${metaToken}`,
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
-                    email,
-                    phone: sanitizedPhone, // sending raw digits or sanitized
-                    fullName: name,
-                    role,
-                    magicLink
+                    messaging_product: 'whatsapp',
+                    to: sanitizedPhone,
+                    type: 'template',
+                    template: {
+                        name: 'hello_world', // Replace with your actual template name. 'hello_world' is standard sandbox.
+                        language: { code: 'pt_BR' }
+                        // If template needs components (like the magic link), add them here:
+                        // components: [
+                        //   {
+                        //     type: 'body',
+                        //     parameters: [{ type: 'text', text: magicLink }]
+                        //   }
+                        // ]
+                    }
                 })
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                console.error('n8n Webhook failed:', response.statusText);
-                // We might still want to redirect even if webhook fails? 
-                // Or warn user? "Link generated but sending failed".
-                // Detailed error for now.
-                return { error: 'Erro ao enviar dados para automação.' };
+                console.error('Meta API failed:', data);
+                return { error: 'Erro ao enviar mensagem via WhatsApp.' };
             }
-        } catch (webhookError) {
-            console.error('Error calling n8n webhook:', webhookError);
-            return { error: 'Erro ao conectar com automação.' };
+        } catch (apiError) {
+            console.error('Error calling Meta API:', apiError);
+            return { error: 'Erro ao conectar com WhatsApp.' };
         }
 
     } catch (err: any) {

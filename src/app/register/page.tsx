@@ -60,8 +60,13 @@ export default function RegisterPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex flex-col gap-2">
             <p className="text-red-700 text-sm font-medium">{error}</p>
+            {error.includes('já possui cadastro') && (
+              <Link href="/login" className="text-sm font-bold text-[#880E4F] hover:underline flex items-center gap-1">
+                Fazer Login <ArrowRight size={14} />
+              </Link>
+            )}
           </div>
         )}
 

@@ -45,9 +45,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // 3. RBAC Checks for Dashboards
-  if (user && !path.startsWith('/_next')) {
-    // Get user profile to check role
+  // 3. RBAC Checks
+  if (user) {
+    // Fetch role
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -56,19 +56,26 @@ export async function middleware(request: NextRequest) {
 
     const role = profile?.role || ROLES.USUARIA
 
-    // Enforce role-based access
+    // Admin Area Protection
     if (path.startsWith('/admin') && role !== ROLES.ADMIN) {
+      // Exception: /admin/setup is allowed for claiming the first admin
+      if (path !== '/admin/setup') {
+        return NextResponse.redirect(new URL('/unauthorized', request.url))
+      }
+    }
+
+    // Dashboard Protection (Sellers/Admins)
+    if (path.startsWith('/dashboard')) {
+      const allowedRoles = [ROLES.ADMIN, ROLES.VENDEDORA]
+      if (!allowedRoles.includes(role as any)) {
+        return NextResponse.redirect(new URL('/unauthorized', request.url))
+      }
+    }
+
+    // Entregadora Area Protection
+    if (path.startsWith('/entregadora') && role !== ROLES.ENTREGADORA && role !== ROLES.ADMIN) {
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
-    if (path.startsWith('/vendedora') && role !== ROLES.VENDEDORA) {
-      return NextResponse.redirect(new URL('/unauthorized', request.url))
-    }
-    if (path.startsWith('/entregadora') && role !== ROLES.ENTREGADORA) {
-      return NextResponse.redirect(new URL('/unauthorized', request.url))
-    }
-    // Note: Cliente area is generally open or we might want to restrict vendors from regular user areas? 
-    // Usually admins/vendors also valid "users", but if strictly separated:
-    // if (path.startsWith('/cliente') && role !== ROLES.USUARIA) { ... }
   }
 
   return response
