@@ -16,6 +16,7 @@ export const profiles = pgTable('profiles', {
     id: uuid('id').primaryKey().notNull().defaultRandom(), // Should reference auth.users.id in production logic
     email: text('email'),
     fullName: text('full_name'),
+    avatarUrl: text('avatar_url'),
     role: userRoleEnum('role').default('usuaria').notNull(),
     phone: text('phone'),
     cpf: text('cpf'),
