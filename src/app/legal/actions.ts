@@ -29,7 +29,7 @@ export async function recordConsent(version: string = '1.0') {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
         console.error("Auth Fail:", authError)
-        throw new Error('User not authenticated')
+        return { success: false, error: 'Usuário não autenticado. Faça login novamente.' }
     }
 
     // 3. Get Metadata
@@ -50,7 +50,7 @@ export async function recordConsent(version: string = '1.0') {
 
     if (dbError) {
         console.error("DB Insert Fail:", dbError)
-        throw new Error('Failed to record consent')
+        return { success: false, error: 'Falha ao registrar consentimento no banco de dados.' }
     }
 
     return { success: true }

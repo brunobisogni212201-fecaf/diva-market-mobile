@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 export default function LegalPage() {
     const [loading, setLoading] = useState(false)
     const [isAuthenticated, setIsAuthenticated] = useState(false)
+    const [role, setRole] = useState<string | null>(null)
     const router = useRouter()
     const supabase = createClient()
 
@@ -20,6 +21,9 @@ export default function LegalPage() {
         const checkAuth = async () => {
             const { data: { session } } = await supabase.auth.getSession()
             setIsAuthenticated(!!session)
+            if (session?.user?.user_metadata?.role) {
+                setRole(session.user.user_metadata.role)
+            }
         }
         checkAuth()
     }, [])
@@ -34,9 +38,18 @@ export default function LegalPage() {
                     duration: 4000,
                     style: { background: '#10B981', color: 'white' }
                 })
-                // Redirect to dashboard after short delay to let toast show
+                // Redirect to dashboard based on role
                 setTimeout(() => {
-                    router.push('/dashboard')
+                    // Map roles to their respective dashboard paths
+                    // Folder structure: src/app/(dashboards)/[role] -> routes to /[role]
+                    let targetPath = '/cliente' // Default fallback
+
+                    if (role === 'vendedora') targetPath = '/vendedora'
+                    else if (role === 'entregadora') targetPath = '/entregadora'
+                    else if (role === 'admin') targetPath = '/admin'
+                    else if (role === 'usuaria') targetPath = '/cliente'
+
+                    router.push(targetPath)
                 }, 1000)
             } else {
                 toast.error('Erro ao registrar consentimento. Tente novamente.', {
@@ -44,7 +57,8 @@ export default function LegalPage() {
                 })
             }
         } catch (error) {
-            toast.error('Ocorreu um erro inesperado.')
+            console.error(error)
+            toast.error('Erro: ' + (error instanceof Error ? error.message : 'Erro desconhecido'))
         } finally {
             setLoading(false)
         }
