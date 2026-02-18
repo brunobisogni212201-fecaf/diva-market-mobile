@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/layout/Header";
+import AuthProvider from "@/components/providers/auth-provider";
 import { ServiceWorkerCleanup } from "@/hooks/use-service-worker-cleanup";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -44,26 +45,28 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Diva Market" />
       </head>
       <body className={`${inter.className} bg-gray-50 text-slate-900 antialiased min-h-screen`}>
-        <ServiceWorkerCleanup />
-        {/* Main Wrapper with Mobile-First Logic */}
-        <div className="flex min-h-screen flex-col max-w-md mx-auto bg-white relative shadow-xl">
-          {/* 
+        <AuthProvider>
+          <ServiceWorkerCleanup />
+          {/* Main Wrapper with Mobile-First Logic */}
+          <div className="flex min-h-screen flex-col max-w-md mx-auto bg-white relative shadow-xl">
+            {/* 
               Safe Area Top for Notches 
               Sticky Header with high Z-index
             */}
-          <div className="pt-[env(safe-area-inset-top)] bg-white sticky top-0 z-50 w-full">
-            <Header className="bg-white/95 backdrop-blur-md border-b border-gray-100" />
+            <div className="pt-[env(safe-area-inset-top)] bg-white sticky top-0 z-50 w-full">
+              <Header className="bg-white/95 backdrop-blur-md border-b border-gray-100" />
+            </div>
+
+            {/* Main Content Area */}
+            {/* pb-20 matches BottomNav height */}
+            <main className="flex-1 px-4 pb-20 pt-4">
+              {children}
+            </main>
+
+            <BottomNav />
+            <Toaster />
           </div>
-
-          {/* Main Content Area */}
-          {/* pb-20 matches BottomNav height */}
-          <main className="flex-1 px-4 pb-20 pt-4">
-            {children}
-          </main>
-
-          <BottomNav />
-          <Toaster />
-        </div>
+        </AuthProvider>
       </body>
     </html>
   );
