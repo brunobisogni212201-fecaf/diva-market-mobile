@@ -105,6 +105,7 @@ export const deletionRequests = pgTable('deletion_requests', {
     id: uuid('id').primaryKey().defaultRandom(),
     userId: uuid('user_id'), // Optional, if user is logged in
     email: text('email').notNull(),
+    cpf: text('cpf'), // Added for strict verification
     reason: text('reason'),
     status: text('status').default('pending_review').notNull(), // 'pending_review', 'processed', 'rejected'
     ipAddress: text('ip_address'),

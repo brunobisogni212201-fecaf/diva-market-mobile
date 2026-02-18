@@ -8,6 +8,13 @@
       "when": 1771417871821,
       "tag": "0000_grey_power_pack",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771423017984,
+      "tag": "0001_perpetual_raider",
+      "breakpoints": true
     }
   ]
 }
