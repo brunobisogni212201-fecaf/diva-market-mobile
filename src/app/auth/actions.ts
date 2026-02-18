@@ -52,5 +52,5 @@ export async function registerUser(formData: FormData) {
         return { error: 'Ocorreu um erro inesperado.' };
     }
 
-    redirect('/dashboard');
+    redirect('/legal');
 }
