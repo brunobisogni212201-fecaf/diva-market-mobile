@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { acceptTerms } from '../actions'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner' // Assuming sonner or similar is used, or basic alert
+
 
 export default function LegalPage() {
     const [loading, setLoading] = useState(false)
@@ -89,38 +89,76 @@ export default function LegalPage() {
                 <TabsContent value="privacidade">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Política de Privacidade (LGPD)</CardTitle>
+                            <CardTitle>Política de Privacidade e Tratamento de Dados (LGPD)</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {companyInfo}
+                            <div className="mb-4 p-4 bg-gray-50 rounded-md text-sm text-gray-700">
+                                <p><strong>Controladora:</strong> BRUNO DE A BISOGNI LTDA (OCEANO AZUL DESENVOLVIMENTO E TECNOLOGIA)</p>
+                                <p><strong>CNPJ:</strong> 62.402.533/0001-57</p>
+                                <p><strong>Endereço:</strong> R Benjamin Constant, 1287, Apt 102 Andar 10, Centro, Campinas - SP, CEP 13010-140</p>
+                                <p><strong>Contato:</strong> meucnpj@contabilizei.com.br</p>
+                            </div>
                             <ScrollArea className="h-[60vh] rounded-md border p-4 text-sm leading-relaxed text-gray-700">
-                                <h3 className="font-bold text-lg mb-2">1. Coleta de Dados</h3>
+                                <h3 className="font-bold text-lg mb-2">1. Quais Dados Coletamos?</h3>
+                                <p className="mb-4">Para viabilizar o funcionamento do marketplace e melhorar continuamente nossos serviços, coletamos as seguintes categorias de dados:</p>
+
+                                <h4 className="font-bold text-md mb-1">1.1. Dados de Identificação (Para Todas as Usuárias)</h4>
                                 <ul className="list-disc pl-5 mb-4 space-y-1">
-                                    <li><strong>Todos:</strong> Nome, E-mail, IP, Logs de acesso.</li>
-                                    <li><strong>Vendedoras:</strong> CPF/CNPJ, Endereço da Loja, Dados Bancários (para repasse).</li>
-                                    <li><strong>Entregadoras:</strong> CNH, Placa/Modelo do Veículo, Geolocalização em tempo real.</li>
-                                    <li><strong>Usuárias:</strong> Endereço de entrega, Histórico de pedidos.</li>
+                                    <li>Nome completo, CPF, E-mail, Número de Celular e Senha criptografada.</li>
+                                    <li>Foto de Perfil (Avatar).</li>
                                 </ul>
 
-                                <h3 className="font-bold text-lg mb-2">2. Finalidade do Tratamento</h3>
-                                <p className="mb-4">
-                                    Os dados são utilizados estritamente para: processar pedidos, permitir a entrega (geolocalização), processar pagamentos (split financeiro) e cumprir obrigações legais.
-                                </p>
+                                <h4 className="font-bold text-md mb-1">1.2. Dados de Geolocalização e Rastreamento (GPS)</h4>
+                                <p className="mb-2"><strong>ATENÇÃO:</strong> Para o funcionamento essencial do aplicativo, coletamos sua localização precisa (GPS) e aproximada (Rede/Wi-Fi):</p>
+                                <ul className="list-disc pl-5 mb-4 space-y-1">
+                                    <li><strong>Em Primeiro Plano:</strong> Enquanto você usa o app para mostrar lojas próximas e calcular frete.</li>
+                                    <li><strong>Em Segundo Plano (Background):</strong> Especificamente para <strong>Entregadoras</strong>, rastreamos o trajeto da entrega em tempo real para segurança e transparência para a Compradora.</li>
+                                    <li><strong>Para Melhoria do Sistema:</strong> Utilizamos o histórico de localização para criar mapas de calor, otimizar rotas logísticas e analisar áreas de maior demanda.</li>
+                                </ul>
 
-                                <h3 className="font-bold text-lg mb-2">3. Compartilhamento</h3>
-                                <p className="mb-4">
-                                    Compartilhamos dados estritamente necessários com: Gateway de Pagamento (processamento financeiro) e Entregadoras (endereço para entrega). Não vendemos dados a terceiros.
-                                </p>
+                                <h4 className="font-bold text-md mb-1">1.3. Dados Financeiros e Transacionais</h4>
+                                <ul className="list-disc pl-5 mb-4 space-y-1">
+                                    <li>Histórico de pedidos e compras.</li>
+                                    <li>Dados bancários ou chaves PIX (exclusivo para Vendedoras e Entregadoras receberem seus repasses).</li>
+                                    <li><em>Nota: Não armazenamos números completos de cartão de crédito. Estes são processados por gateways de pagamento seguros.</em></li>
+                                </ul>
 
-                                <h3 className="font-bold text-lg mb-2">4. Seus Direitos (LGPD)</h3>
-                                <p className="mb-4">
-                                    Você tem direito a: confirmar a existência de tratamento, acessar seus dados, corrigir dados incompletos ou desatualizados, e solicitar anonimização ou exclusão (exceto quando a manutenção for necessária por lei).
-                                </p>
+                                <h4 className="font-bold text-md mb-1">1.4. Dados de Dispositivo e Navegação</h4>
+                                <ul className="list-disc pl-5 mb-4 space-y-1">
+                                    <li>Endereço IP, modelo do aparelho, sistema operacional e versão do app.</li>
+                                    <li>Logs de acesso e consentimento (data e hora do aceite destes termos).</li>
+                                </ul>
+
+                                <h3 className="font-bold text-lg mb-2">2. Para Que Usamos Seus Dados?</h3>
+                                <p className="mb-2">Tratamos seus dados com as seguintes finalidades legais:</p>
+                                <ol className="list-decimal pl-5 mb-4 space-y-1">
+                                    <li><strong>Execução de Contrato:</strong> Processar pedidos, calcular <em>Split</em> de pagamentos e realizar entregas.</li>
+                                    <li><strong>Legítimo Interesse:</strong> Analisar o comportamento de uso para desenvolver novas funcionalidades (Analytics), prevenção à fraude e segurança da plataforma, e melhoria da UX.</li>
+                                    <li><strong>Proteção da Vida e Segurança:</strong> Monitoramento em tempo real das entregas.</li>
+                                    <li><strong>Cumprimento Legal:</strong> Guarda de logs de internet por 6 meses (Marco Civil da Internet) e dados fiscais por 5 anos.</li>
+                                </ol>
+
+                                <h3 className="font-bold text-lg mb-2">3. Compartilhamento de Dados</h3>
+                                <p className="mb-4">Não vendemos seus dados. O compartilhamento ocorre apenas quando estritamente necessário:</p>
+                                <ul className="list-disc pl-5 mb-4 space-y-1">
+                                    <li><strong>Entre Usuárias:</strong> A Vendedora recebe o pedido com nome/endereço da Compradora. A Entregadora recebe o endereço de retirada e entrega.</li>
+                                    <li><strong>Parceiros Tecnológicos:</strong> Provedores de nuvem (Supabase), processadores de pagamento e ferramentas de automação (n8n), todos obrigados a manter sigilo e segurança.</li>
+                                    <li><strong>Autoridades:</strong> Mediante ordem judicial ou requisição legal.</li>
+                                </ul>
+
+                                <h3 className="font-bold text-lg mb-2">4. Seus Direitos (Titular dos Dados)</h3>
+                                <p className="mb-4">Conforme o Art. 18 da LGPD, você pode solicitar a qualquer momento: confirmação e acesso aos seus dados, correção de dados, revogação de consentimento (o que pode impedir uso de funções essenciais como entrega), e exclusão de dados (salvo os exigidos por lei).</p>
 
                                 <h3 className="font-bold text-lg mb-2">5. Segurança</h3>
-                                <p className="mb-4">
-                                    Utilizamos criptografia em trânsito (SSL) e repouso. O acesso ao banco de dados é segregado via Row Level Security (RLS).
-                                </p>
+                                <p className="mb-4">Adotamos medidas técnicas robustas, incluindo criptografia de ponta a ponta em trânsito (SSL/TLS), controle de acesso rigoroso e segregação de dados.</p>
+
+                                <h3 className="font-bold text-lg mb-2">6. Contato do Encarregado (DPO)</h3>
+                                <p>Para exercer seus direitos ou tirar dúvidas, entre em contato conosco:</p>
+                                <ul className="list-none pl-0 mb-4 space-y-1">
+                                    <li><strong>Controladora:</strong> BRUNO DE A BISOGNI LTDA</li>
+                                    <li><strong>E-mail Jurídico:</strong> meucnpj@contabilizei.com.br</li>
+                                    <li><strong>Endereço:</strong> Campinas - SP</li>
+                                </ul>
                             </ScrollArea>
                         </CardContent>
                     </Card>
