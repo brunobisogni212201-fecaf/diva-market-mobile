@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Toaster } from "sonner";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
@@ -61,6 +62,7 @@ export default function RootLayout({
           </main>
 
           <BottomNav />
+          <Toaster />
         </div>
       </body>
     </html>
