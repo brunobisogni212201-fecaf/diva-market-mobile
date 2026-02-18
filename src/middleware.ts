@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   // Public paths that don't need auth
-  const isPublicPath = path === '/login' || path === '/register' || path === '/'
+  const isPublicPath = path === '/login' || path === '/register' || path === '/' || path.startsWith('/legal')
 
   if (!user && !isPublicPath && !path.startsWith('/_next')) {
     // Redirect unauthenticated users to login
