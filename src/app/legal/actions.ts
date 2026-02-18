@@ -1,35 +1,57 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { consentLogs } from '@/lib/db/schema'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createServerClient } from '@supabase/ssr'
+import { cookies, headers } from 'next/headers'
 
-export async function recordConsent() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+export async function recordConsent(version: string = '1.0') {
+    const cookieStore = cookies()
 
-    if (!user) {
-        return { error: 'Você precisa estar logada para aceitar os termos.' }
+    // 1. Initialize Client with Cookies (Crucial for Vercel)
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() { return cookieStore.getAll() },
+                setAll(cookiesToSet) {
+                    // Server Actions can't set cookies easily, but we just need to READ auth here.
+                    try {
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            cookieStore.set(name, value, options)
+                        )
+                    } catch { }
+                },
+            },
+        }
+    )
+
+    // 2. Verify User
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+        console.error("Auth Fail:", authError)
+        throw new Error('User not authenticated')
     }
 
-    try {
-        const headerStore = headers()
-        const forwardedFor = headerStore.get('x-forwarded-for')
-        // Ensure IP is a string, handle potentially multiple IPs or null/undefined
-        const ip = typeof forwardedFor === 'string' ? forwardedFor.split(',')[0] : 'unknown'
+    // 3. Get Metadata
+    const headerList = headers()
+    const ip = headerList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
 
-        await db.insert(consentLogs).values({
-            profileId: user.id,
-            consentType: 'termos_privacidade_v1',
-            version: '1.0',
-            ipAddress: ip,
-            acceptedAt: new Date().toISOString()
+    // 4. Insert into DB using Supabase directly as requested in prompt, 
+    // ensuring we use the authenticated client we just created.
+    const { error: dbError } = await supabase
+        .from('consent_logs')
+        .insert({
+            profile_id: user.id,
+            consent_type: 'termos_privacidade',
+            version: version,
+            ip_address: ip,
+            accepted_at: new Date().toISOString()
         })
 
-        return { success: true }
-    } catch (error) {
-        console.error('Error in recordConsent:', error)
-        return { error: 'Falha ao registrar consentimento. Por favor, tente novamente.' }
+    if (dbError) {
+        console.error("DB Insert Fail:", dbError)
+        throw new Error('Failed to record consent')
     }
+
+    return { success: true }
 }
