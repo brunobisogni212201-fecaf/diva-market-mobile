@@ -1,11 +1,13 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { type NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { type EmailOtpType } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url);
-    const code = searchParams.get('code');
-    const next = searchParams.get('next') ?? '/';
+    const code = searchParams.get("code");
+    // if "next" is in param, use it as the redirect URL
+    const next = searchParams.get("next") ?? "/dashboard";
 
     if (code) {
         const cookieStore = cookies();
@@ -14,50 +16,36 @@ export async function GET(request: NextRequest) {
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
             {
                 cookies: {
-                    getAll() {
-                        return cookieStore.getAll();
+                    get(name: string) {
+                        return cookieStore.get(name)?.value;
                     },
-                    setAll(cookiesToSet: { name: string, value: string, options: CookieOptions }[]) {
-                        try {
-                            cookiesToSet.forEach(({ name, value, options }) =>
-                                cookieStore.set(name, value, options)
-                            );
-                        } catch (error) {
-                            // The `set` method was called from a Server Component.
-                            // This can be ignored if you have middleware refreshing
-                            // user sessions.
-                        }
+                    set(name: string, value: string, options: CookieOptions) {
+                        cookieStore.set({ name, value, ...options });
+                    },
+                    remove(name: string, options: CookieOptions) {
+                        cookieStore.delete({ name, ...options });
                     },
                 },
             }
         );
 
-        const { error, data } = await supabase.auth.exchangeCodeForSession(code);
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-        if (!error && data?.user) {
-            // 2. Retrieve User Role
-            // Checks user_metadata first (set during sign-up)
-            // Fallback to 'usuaria' if not found, or handle fetching from profiles if needed in future
-            const role = data.user.user_metadata?.role;
+        if (!error) {
+            const forwardedHost = request.headers.get('x-forwarded-host'); // original origin before load balancer
+            const isLocalEnv = process.env.NODE_ENV === 'development';
 
-            // 3. Smart Redirect (Switch Case)
-            switch (role) {
-                case 'admin':
-                    return NextResponse.redirect(`${origin}/admin`);
-                case 'vendedora':
-                    return NextResponse.redirect(`${origin}/cadastro/vendedora/completar-dados`); // PJ/PF Form
-                case 'entregadora':
-                    return NextResponse.redirect(`${origin}/cadastro/entregadora/dados-veiculo`);
-                case 'usuaria':
-                    return NextResponse.redirect(`${origin}/`); // Home
-                default:
-                    // FALLBACK: If no role or unknown role, redirect to selection
-                    return NextResponse.redirect(`${origin}/cadastro/selecao`);
+            if (isLocalEnv) {
+                // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
+                return NextResponse.redirect(`${origin}${next}`);
+            } else if (forwardedHost) {
+                return NextResponse.redirect(`https://${forwardedHost}${next}`);
+            } else {
+                return NextResponse.redirect(`${origin}${next}`);
             }
         }
     }
 
-    // 4. ERROR HANDLING
-    // If invalid code or error exchanging code
-    return NextResponse.redirect(`${origin}/auth/error`);
+    // return the user to an error page with instructions
+    return NextResponse.redirect(`${origin}/login?error=auth-code-error`);
 }
