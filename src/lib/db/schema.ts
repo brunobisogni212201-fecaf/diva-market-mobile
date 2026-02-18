@@ -97,6 +97,20 @@ export const consentLogs = pgTable('consent_logs', {
     acceptedAt: timestamp('accepted_at', { withTimezone: true, mode: 'string' }).defaultNow(),
 });
 
+/**
+ * Data Deletion Requests Table (Right to be Forgotten)
+ * Tracks user requests for data deletion/anonymization.
+ */
+export const deletionRequests = pgTable('deletion_requests', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id'), // Optional, if user is logged in
+    email: text('email').notNull(),
+    reason: text('reason'),
+    status: text('status').default('pending_review').notNull(), // 'pending_review', 'processed', 'rejected'
+    ipAddress: text('ip_address'),
+    requestedAt: timestamp('requested_at', { withTimezone: true, mode: 'string' }).defaultNow(),
+});
+
 // 3. RELATIONSHIPS
 
 export const profilesRelations = relations(profiles, ({ many, one }) => ({
