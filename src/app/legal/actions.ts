@@ -36,9 +36,20 @@ export async function recordConsent(version: string = '1.0') {
     const headerList = headers()
     const ip = headerList.get('x-forwarded-for')?.split(',')[0] || 'unknown'
 
-    // 4. Insert into DB using Supabase directly as requested in prompt, 
-    // ensuring we use the authenticated client we just created.
-    const { error: dbError } = await supabase
+    // 4. Create Admin Client (Service Role) to bypass RLS for logging
+    const adminSupabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+            cookies: {
+                getAll() { return [] },
+                setAll() { }
+            }
+        }
+    )
+
+    // 5. Insert into DB using Admin Client
+    const { error: dbError } = await adminSupabase
         .from('consent_logs')
         .insert({
             profile_id: user.id,
