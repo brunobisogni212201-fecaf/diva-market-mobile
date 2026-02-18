@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 
 export async function registerUser(formData: FormData) {
     const fullName = formData.get('fullName') as string;
@@ -15,7 +16,10 @@ export async function registerUser(formData: FormData) {
 
     const supabase = createClient();
 
+    const origin = headers().get('origin');
+
     console.log("1. Iniciando tentativa de cadastro para:", email);
+    console.log("📍 Redirect URL:", `${origin}/auth/callback`);
 
     try {
         const { data, error } = await supabase.auth.signUp({
@@ -26,6 +30,7 @@ export async function registerUser(formData: FormData) {
                     full_name: fullName,
                     role: role,
                 },
+                emailRedirectTo: `${origin}/auth/callback`,
             },
         });
 
