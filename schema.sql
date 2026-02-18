@@ -7,7 +7,7 @@ create table public.profiles (
   email text,
   full_name text,
   avatar_url text,
-  role text default 'customer' check (role in ('admin', 'customer', 'seller')),
+  role text default 'usuaria' check (role in ('admin', 'usuaria', 'vendedora', 'entregadora')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -34,8 +34,14 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, full_name, avatar_url)
-  values (new.id, new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+  insert into public.profiles (id, email, full_name, avatar_url, role)
+  values (
+    new.id,
+    new.email,
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'avatar_url',
+    COALESCE(new.raw_user_meta_data->>'role', 'usuaria')
+  );
   return new;
 end;
 $$;
