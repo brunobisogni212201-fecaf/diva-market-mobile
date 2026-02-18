@@ -58,7 +58,7 @@ export default function ConsentSection({
                     <label htmlFor="terms" className="font-medium text-gray-700">
                         Li e aceito os{' '}
                         <Link
-                            href="/legal/terms"
+                            href="/legal?tab=termos"
                             target="_blank"
                             className="text-pink-600 hover:text-pink-500 underline"
                         >
@@ -66,7 +66,7 @@ export default function ConsentSection({
                         </Link>
                         {' '}e{' '}
                         <Link
-                            href="/legal/privacy"
+                            href="/legal?tab=privacidade"
                             target="_blank"
                             className="text-pink-600 hover:text-pink-500 underline"
                         >
